@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard Prevalensi Penyakit Ginjal Kronis</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{--blue:#1d6fb8;--blue-dark:#12497c;--blue-soft:#eaf3fb;--red:#d64550;--green:#2e9e6b;--ink:#1f2d3d;--muted:#5d6b7a;--line:#d9e3ee;--bg:#f5f9fd;--card:#fff}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.55}
+.wrap{max-width:1200px;margin:0 auto;padding:0 16px 40px}
+header{background:linear-gradient(135deg,var(--blue-dark),var(--blue));color:#fff;padding:28px 0 22px}
+header h1{margin:0 0 6px;font-size:clamp(1.4rem,3.5vw,2rem)}
+header .meta{font-size:.92rem;opacity:.95}
+header .meta a{color:#fff}
+.badge{display:inline-block;margin-top:10px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.4);padding:3px 10px;border-radius:999px;font-size:.82rem}
+.ident{margin-top:16px;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.ident div{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.4);border-radius:8px;padding:8px 12px;font-size:.85rem}
+.ident b{display:block;font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;opacity:.85;font-weight:600}
+.ident span{display:block;min-height:1.2em}
+section{margin-top:22px}
+h2{font-size:1.15rem;margin:0 0 12px;color:var(--blue-dark)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:0 1px 3px rgba(18,73,124,.06)}
+.filters{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end}
+.filters label{display:flex;flex-direction:column;font-size:.8rem;color:var(--muted);font-weight:600;gap:4px;flex:1 1 180px}
+select,button{font:inherit;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink)}
+button{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:600;cursor:pointer;flex:0 0 auto}
+button:hover{background:var(--blue-dark)}
+#filterInfo{margin:10px 0 0;font-size:.85rem;color:var(--muted)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+.kpi{border-left:5px solid var(--blue)}
+.kpi.red{border-left-color:var(--red)}
+.kpi small{color:var(--muted);font-size:.8rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.kpi .v{font-size:1.9rem;font-weight:700;margin-top:2px}
+.kpi.red .v{color:var(--red)}
+.kpi .s{font-size:.78rem;color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.grid .wide{grid-column:1/-1}
+.chart-box{position:relative;height:300px}
+.card h3{margin:0 0 2px;font-size:1rem}
+.card .cap{margin:0 0 8px;font-size:.78rem;color:var(--muted)}
+.empty{display:none;position:absolute;inset:0;align-items:center;justify-content:center;color:var(--muted);background:rgba(255,255,255,.9);font-size:.9rem;text-align:center}
+.tablewrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.92rem}
+th,td{padding:9px 12px;border-bottom:1px solid var(--line);text-align:right}
+th:first-child,td:first-child{text-align:left}
+th{background:var(--blue-soft);color:var(--blue-dark)}
+tfoot td{font-weight:700;background:#fafcfe}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:7px}
+.insights ol{margin:0;padding-left:20px}
+.insights li{margin-bottom:10px}
+.limit{margin-top:14px;padding:12px 14px;background:#fff6f6;border-left:4px solid var(--red);border-radius:6px;font-size:.9rem}
+.limit ul{margin:6px 0 0;padding-left:18px}
+footer{margin-top:26px;text-align:center;font-size:.8rem;color:var(--muted)}
+@media(max-width:800px){.grid{grid-template-columns:1fr}.chart-box{height:270px}.kpi .v{font-size:1.6rem}}
+</style>
+</head>
+<body>
+<header>
+ <div class="wrap">
+  <h1>Dashboard Prevalensi Penyakit Ginjal Kronis</h1>
+  <div class="meta">
+   Dataset: <b>Kidney Disease Dataset</b> (Kaggle) &middot;
+   Sumber: <a href="https://www.kaggle.com/datasets/amanik000/kidney-disease-dataset" target="_blank" rel="noopener">kaggle.com/datasets/amanik000/kidney-disease-dataset</a> &middot;
+   Jumlah data: <b>20.538 pasien</b>
+  </div>
+  <span class="badge">Periode data: tidak tersedia dalam dataset</span>
+  <div class="ident">
+   <div><b>Nama</b><span>Novelina Angelique Runa Setyawan</span></div>
+   <div><b>NIM</b><span>P1337437124126</span></div>
+   <div><b>Kelas</b><span>3A</span></div>
+   <div><b>Dosen</b><span>Setya Wijayanta, S.T., M.Kes.</span></div>
+  </div>
+ </div>
+</header>
+
+<div class="wrap">
+ <section>
+  <h2>Filter</h2>
+  <div class="card">
+   <div class="filters">
+    <label>Kelompok umur
+     <select id="fAge"><option value="all">Semua</option><option value="0">&lt;18</option><option value="1">18-30</option><option value="2">31-45</option><option value="3">46-60</option><option value="4">&gt;60</option></select></label>
+    <label>Diabetes
+     <select id="fDia"><option value="all">Semua</option><option value="1">Diabetes</option><option value="0">Tidak diabetes</option></select></label>
+    <label>Hipertensi
+     <select id="fHyp"><option value="all">Semua</option><option value="1">Hipertensi</option><option value="0">Tidak hipertensi</option></select></label>
+    <button id="reset" type="button">Reset</button>
+   </div>
+   <p id="filterInfo"></p>
+  </div>
+ </section>
+
+ <section>
+  <h2>Indikator Utama</h2>
+  <div class="kpis">
+   <div class="card kpi"><small>Total pasien</small><div class="v" id="kTotal">-</div><div class="s" id="kTotalS"></div></div>
+   <div class="card kpi red"><small>Pasien PGK</small><div class="v" id="kCkd">-</div><div class="s">Target selain No_Disease</div></div>
+   <div class="card kpi red"><small>Prevalensi PGK</small><div class="v" id="kPrev">-</div><div class="s">PGK / total pasien</div></div>
+   <div class="card kpi"><small>Rata-rata umur</small><div class="v" id="kAge">-</div><div class="s">tahun</div></div>
+  </div>
+ </section>
+
+ <section>
+  <h2>Grafik</h2>
+  <div class="grid">
+   <div class="card"><h3>1. Distribusi Status Penyakit (Target)</h3><p class="cap">Persentase pasien per kategori Target</p><div class="chart-box"><canvas id="c1"></canvas><div class="empty" id="e1">Tidak ada data untuk filter ini</div></div></div>
+   <div class="card"><h3>2. Prevalensi PGK per Kelompok Umur</h3><p class="cap">Garis putus-putus = prevalensi pada filter aktif</p><div class="chart-box"><canvas id="c2"></canvas><div class="empty" id="e2">Tidak ada data untuk filter ini</div></div></div>
+   <div class="card wide"><h3>3. Prevalensi PGK per Level Albumin Urin (0-5)</h3><p class="cap">Garis putus-putus = prevalensi pada filter aktif</p><div class="chart-box"><canvas id="c3"></canvas><div class="empty" id="e3">Tidak ada data untuk filter ini</div></div></div>
+   <div class="card"><h3>4. Prevalensi PGK: Diabetes vs Non-Diabetes</h3><p class="cap">Garis putus-putus = prevalensi pada filter aktif</p><div class="chart-box"><canvas id="c4"></canvas><div class="empty" id="e4">Tidak ada data untuk filter ini</div></div></div>
+   <div class="card"><h3>5. Prevalensi PGK: Hipertensi vs Non-Hipertensi</h3><p class="cap">Garis putus-putus = prevalensi pada filter aktif</p><div class="chart-box"><canvas id="c5"></canvas><div class="empty" id="e5">Tidak ada data untuk filter ini</div></div></div>
+  </div>
+ </section>
+
+ <section>
+  <h2>Tabel Ringkasan Status Penyakit (Target)</h2>
+  <div class="card tablewrap">
+   <table>
+    <thead><tr><th>Kategori Target</th><th>Jumlah pasien</th><th>Persentase</th></tr></thead>
+    <tbody id="tbody"></tbody>
+    <tfoot id="tfoot"></tfoot>
+   </table>
+  </div>
+ </section>
+
+ <section class="insights">
+  <h2>Insight dan Interpretasi</h2>
+  <div class="card">
+   <p style="margin-top:0;font-size:.85rem;color:var(--muted)">Insight dihitung dari seluruh dataset (tidak terpengaruh filter).</p>
+   <ol id="insightList"></ol>
+   <div class="limit"><b>Keterbatasan data</b>
+    <ul>
+     <li>Dataset tidak memuat periode pengumpulan, lokasi, atau asal populasi, sehingga angka tidak dapat disebut sebagai prevalensi populasi; ini hanya proporsi pasien PGK di dalam dataset.</li>
+     <li>Definisi PGK mengikuti ketentuan tugas (Target selain No_Disease, termasuk Low_Risk), bukan kriteria klinis (mis. eGFR/albuminuria) yang dihitung ulang.</li>
+     <li>Analisis bersifat deskriptif per satu faktor; tidak ada uji statistik, pengendalian faktor perancu, ataupun inferensi sebab-akibat.</li>
+     <li>Diabetes dan hipertensi hanya berupa ya/tidak, tanpa tingkat keparahan atau durasi; kelompok umur &gt;60 mencakup rentang lebar.</li>
+    </ul>
+   </div>
+  </div>
+ </section>
+
+ <footer>Sumber data: Kidney Disease Dataset (Kaggle). Seluruh angka dihitung dari file CSV yang diunggah dan ditanam dalam file ini.</footer>
+</div>
+
+<script>
+// Data teragregasi dari CSV: [kelompokUmur, albumin, diabetes, hipertensi, target, jumlah, totalUmur]
+const DATA = [[0,0,0,0,0,101,1156],[0,0,0,0,1,18,205],[0,0,0,0,2,7,86],[0,0,0,0,3,10,108],[0,0,0,0,4,3,37],[0,0,0,1,0,95,1062],[0,0,0,1,1,5,54],[0,0,0,1,2,3,39],[0,0,0,1,3,6,68],[0,0,0,1,4,1,6],[0,0,1,0,0,89,983],[0,0,1,0,1,11,121],[0,0,1,0,2,6,65],[0,0,1,0,3,8,81],[0,0,1,0,4,2,12],[0,0,1,1,0,105,1159],[0,0,1,1,1,11,133],[0,0,1,1,2,5,49],[0,0,1,1,3,5,64],[0,0,1,1,4,3,34],[0,1,0,0,0,107,1172],[0,1,0,0,1,13,132],[0,1,0,0,2,7,72],[0,1,0,0,3,4,52],[0,1,0,0,4,1,11],[0,1,0,1,0,114,1234],[0,1,0,1,1,12,129],[0,1,0,1,2,7,63],[0,1,0,1,3,11,126],[0,1,0,1,4,3,17],[0,1,1,0,0,105,1144],[0,1,1,0,1,20,235],[0,1,1,0,2,6,66],[0,1,1,0,3,6,68],[0,1,1,0,4,1,7],[0,1,1,1,0,111,1282],[0,1,1,1,1,13,140],[0,1,1,1,2,8,104],[0,1,1,1,3,6,66],[0,1,1,1,4,3,39],[0,2,0,0,0,95,1104],[0,2,0,0,1,12,123],[0,2,0,0,2,7,88],[0,2,0,0,3,3,33],[0,2,0,0,4,4,51],[0,2,0,1,0,101,1126],[0,2,0,1,1,12,111],[0,2,0,1,2,5,49],[0,2,0,1,3,9,96],[0,2,0,1,4,5,69],[0,2,1,0,0,120,1326],[0,2,1,0,1,20,245],[0,2,1,0,2,4,39],[0,2,1,0,3,6,59],[0,2,1,0,4,2,12],[0,2,1,1,0,94,1021],[0,2,1,1,1,15,125],[0,2,1,1,2,7,69],[0,2,1,1,3,3,30],[0,2,1,1,4,3,28],[0,3,0,0,0,115,1282],[0,3,0,0,1,13,134],[0,3,0,0,2,9,101],[0,3,0,0,3,5,53],[0,3,0,0,4,1,13],[0,3,0,1,0,104,1114],[0,3,0,1,1,16,168],[0,3,0,1,2,2,28],[0,3,0,1,3,4,44],[0,3,0,1,4,4,48],[0,3,1,0,0,110,1232],[0,3,1,0,1,13,152],[0,3,1,0,2,4,31],[0,3,1,0,3,4,44],[0,3,1,0,4,2,23],[0,3,1,1,0,112,1188],[0,3,1,1,1,16,175],[0,3,1,1,2,2,19],[0,3,1,1,3,9,105],[0,3,1,1,4,7,60],[0,4,0,0,0,89,944],[0,4,0,0,1,5,58],[0,4,0,0,2,8,85],[0,4,0,0,3,6,66],[0,4,0,0,4,1,5],[0,4,0,1,0,115,1235],[0,4,0,1,1,12,110],[0,4,0,1,2,2,21],[0,4,0,1,3,8,88],[0,4,0,1,4,4,50],[0,4,1,0,0,99,1117],[0,4,1,0,1,13,151],[0,4,1,0,2,4,44],[0,4,1,0,3,9,105],[0,4,1,0,4,1,15],[0,4,1,1,0,112,1262],[0,4,1,1,1,14,158],[0,4,1,1,2,5,48],[0,4,1,1,3,9,113],[0,5,0,0,0,88,940],[0,5,0,0,1,23,236],[0,5,0,0,2,7,68],[0,5,0,0,3,5,61],[0,5,0,1,0,96,1011],[0,5,0,1,1,15,174],[0,5,0,1,2,6,52],[0,5,0,1,3,2,28],[0,5,0,1,4,3,35],[0,5,1,0,0,110,1210],[0,5,1,0,1,8,92],[0,5,1,0,2,6,65],[0,5,1,0,3,4,24],[0,5,1,0,4,3,36],[0,5,1,1,0,106,1219],[0,5,1,1,1,13,152],[0,5,1,1,2,5,52],[0,5,1,1,3,2,24],[0,5,1,1,4,1,11],[1,0,0,0,0,96,2233],[1,0,0,0,1,10,242],[1,0,0,0,2,2,51],[1,0,0,0,3,6,150],[1,0,0,0,4,1,23],[1,0,0,1,0,110,2638],[1,0,0,1,1,11,281],[1,0,0,1,2,5,132],[1,0,0,1,3,6,152],[1,0,0,1,4,4,93],[1,0,1,0,0,109,2583],[1,0,1,0,1,19,446],[1,0,1,0,2,8,189],[1,0,1,0,3,1,27],[1,0,1,0,4,1,23],[1,0,1,1,0,93,2236],[1,0,1,1,1,10,225],[1,0,1,1,2,9,225],[1,0,1,1,3,7,162],[1,0,1,1,4,4,92],[1,1,0,0,0,93,2218],[1,1,0,0,1,15,381],[1,1,0,0,2,2,47],[1,1,0,0,3,3,73],[1,1,0,0,4,6,129],[1,1,0,1,0,100,2393],[1,1,0,1,1,14,330],[1,1,0,1,2,8,178],[1,1,0,1,3,3,83],[1,1,0,1,4,1,20],[1,1,1,0,0,95,2300],[1,1,1,0,1,11,268],[1,1,1,0,2,4,95],[1,1,1,0,3,10,239],[1,1,1,1,0,95,2304],[1,1,1,1,1,8,195],[1,1,1,1,2,4,90],[1,1,1,1,3,2,46],[1,1,1,1,4,3,73],[1,2,0,0,0,96,2288],[1,2,0,0,1,14,297],[1,2,0,0,2,5,116],[1,2,0,0,3,7,154],[1,2,0,0,4,2,52],[1,2,0,1,0,105,2440],[1,2,0,1,1,17,402],[1,2,0,1,2,5,110],[1,2,0,1,3,6,135],[1,2,0,1,4,5,122],[1,2,1,0,0,104,2516],[1,2,1,0,1,11,268],[1,2,1,0,2,7,189],[1,2,1,0,3,2,49],[1,2,1,0,4,1,23],[1,2,1,1,0,116,2760],[1,2,1,1,1,16,412],[1,2,1,1,2,8,198],[1,2,1,1,3,5,120],[1,2,1,1,4,2,46],[1,3,0,0,0,99,2376],[1,3,0,0,1,16,409],[1,3,0,0,2,8,197],[1,3,0,0,3,5,132],[1,3,0,0,4,3,77],[1,3,0,1,0,110,2651],[1,3,0,1,1,6,138],[1,3,0,1,2,7,193],[1,3,0,1,3,3,80],[1,3,0,1,4,1,25],[1,3,1,0,0,113,2735],[1,3,1,0,1,14,353],[1,3,1,0,2,5,122],[1,3,1,0,3,8,197],[1,3,1,0,4,3,83],[1,3,1,1,0,103,2495],[1,3,1,1,1,15,358],[1,3,1,1,2,5,117],[1,3,1,1,3,4,104],[1,3,1,1,4,6,138],[1,4,0,0,0,104,2513],[1,4,0,0,1,18,425],[1,4,0,0,2,2,41],[1,4,0,0,3,7,185],[1,4,0,1,0,95,2267],[1,4,0,1,1,12,289],[1,4,0,1,2,1,27],[1,4,0,1,3,1,28],[1,4,0,1,4,2,43],[1,4,1,0,0,95,2265],[1,4,1,0,1,16,358],[1,4,1,0,2,4,83],[1,4,1,0,3,5,108],[1,4,1,0,4,1,24],[1,4,1,1,0,105,2479],[1,4,1,1,1,7,161],[1,4,1,1,2,4,94],[1,4,1,1,3,4,97],[1,4,1,1,4,6,155],[1,5,0,0,0,98,2290],[1,5,0,0,1,11,252],[1,5,0,0,2,7,172],[1,5,0,0,3,9,194],[1,5,0,0,4,4,89],[1,5,0,1,0,113,2733],[1,5,0,1,1,10,243],[1,5,0,1,2,3,77],[1,5,0,1,3,6,148],[1,5,0,1,4,2,41],[1,5,1,0,0,104,2506],[1,5,1,0,1,5,127],[1,5,1,0,2,5,124],[1,5,1,0,3,6,154],[1,5,1,0,4,4,85],[1,5,1,1,0,101,2431],[1,5,1,1,1,13,330],[1,5,1,1,2,5,120],[1,5,1,1,3,5,110],[1,5,1,1,4,1,21],[2,0,0,0,0,122,4661],[2,0,0,0,1,11,427],[2,0,0,0,2,4,158],[2,0,0,0,3,4,140],[2,0,0,0,4,2,80],[2,0,0,1,0,122,4595],[2,0,0,1,1,17,604],[2,0,0,1,2,5,169],[2,0,0,1,3,6,223],[2,0,0,1,4,5,196],[2,0,1,0,0,102,3887],[2,0,1,0,1,12,455],[2,0,1,0,2,6,234],[2,0,1,0,3,5,202],[2,0,1,0,4,2,76],[2,0,1,1,0,131,5033],[2,0,1,1,1,17,656],[2,0,1,1,2,5,167],[2,0,1,1,3,8,295],[2,0,1,1,4,3,119],[2,1,0,0,0,130,4959],[2,1,0,0,1,10,382],[2,1,0,0,2,11,433],[2,1,0,0,3,5,201],[2,1,0,0,4,3,120],[2,1,0,1,0,124,4716],[2,1,0,1,1,9,346],[2,1,0,1,2,11,436],[2,1,0,1,3,9,346],[2,1,0,1,4,3,132],[2,1,1,0,0,117,4396],[2,1,1,0,1,14,524],[2,1,1,0,2,10,395],[2,1,1,0,3,3,121],[2,1,1,0,4,3,101],[2,1,1,1,0,122,4611],[2,1,1,1,1,15,604],[2,1,1,1,2,4,140],[2,1,1,1,3,4,161],[2,1,1,1,4,4,147],[2,2,0,0,0,115,4421],[2,2,0,0,1,14,532],[2,2,0,0,2,11,418],[2,2,0,0,3,5,195],[2,2,0,0,4,3,126],[2,2,0,1,0,125,4676],[2,2,0,1,1,11,405],[2,2,0,1,2,7,275],[2,2,0,1,3,5,196],[2,2,0,1,4,5,178],[2,2,1,0,0,118,4437],[2,2,1,0,1,10,378],[2,2,1,0,2,5,180],[2,2,1,0,3,4,145],[2,2,1,0,4,2,70],[2,2,1,1,0,110,4121],[2,2,1,1,1,13,474],[2,2,1,1,2,4,136],[2,2,1,1,3,7,266],[2,2,1,1,4,4,151],[2,3,0,0,0,123,4670],[2,3,0,0,1,17,620],[2,3,0,0,2,5,173],[2,3,0,0,3,1,44],[2,3,0,0,4,2,74],[2,3,0,1,0,126,4703],[2,3,0,1,1,21,780],[2,3,0,1,2,4,148],[2,3,0,1,3,5,163],[2,3,0,1,4,5,193],[2,3,1,0,0,137,5185],[2,3,1,0,1,25,953],[2,3,1,0,2,3,118],[2,3,1,0,3,2,78],[2,3,1,0,4,3,126],[2,3,1,1,0,95,3596],[2,3,1,1,1,18,676],[2,3,1,1,2,9,335],[2,3,1,1,3,9,326],[2,3,1,1,4,3,101],[2,4,0,0,0,121,4612],[2,4,0,0,1,12,474],[2,4,0,0,2,4,173],[2,4,0,0,3,10,380],[2,4,0,0,4,1,33],[2,4,0,1,0,119,4541],[2,4,0,1,1,21,806],[2,4,0,1,2,8,271],[2,4,0,1,3,6,222],[2,4,0,1,4,5,188],[2,4,1,0,0,140,5334],[2,4,1,0,1,17,618],[2,4,1,0,2,9,337],[2,4,1,0,3,8,305],[2,4,1,0,4,3,110],[2,4,1,1,0,116,4421],[2,4,1,1,1,11,401],[2,4,1,1,2,9,348],[2,4,1,1,3,6,213],[2,4,1,1,4,2,73],[2,5,0,0,0,102,3976],[2,5,0,0,1,26,966],[2,5,0,0,2,7,255],[2,5,0,0,3,4,146],[2,5,0,0,4,8,310],[2,5,0,1,0,114,4337],[2,5,0,1,1,17,656],[2,5,0,1,2,2,82],[2,5,0,1,3,6,225],[2,5,0,1,4,7,276],[2,5,1,0,0,116,4333],[2,5,1,0,1,22,817],[2,5,1,0,2,5,177],[2,5,1,0,3,8,287],[2,5,1,0,4,6,248],[2,5,1,1,0,117,4516],[2,5,1,1,1,18,690],[2,5,1,1,2,4,165],[2,5,1,1,3,10,364],[2,5,1,1,4,6,217],[3,0,0,0,0,124,6546],[3,0,0,0,1,16,861],[3,0,0,0,2,7,376],[3,0,0,0,3,4,214],[3,0,0,0,4,5,267],[3,0,0,1,0,119,6355],[3,0,0,1,1,12,651],[3,0,0,1,3,6,311],[3,0,0,1,4,2,105],[3,0,1,0,0,120,6376],[3,0,1,0,1,10,529],[3,0,1,0,2,5,257],[3,0,1,0,3,5,280],[3,0,1,0,4,1,46],[3,0,1,1,0,107,5812],[3,0,1,1,1,14,715],[3,0,1,1,2,4,206],[3,0,1,1,3,9,475],[3,0,1,1,4,4,222],[3,1,0,0,0,132,7008],[3,1,0,0,1,21,1121],[3,1,0,0,2,12,613],[3,1,0,0,3,8,415],[3,1,0,0,4,5,274],[3,1,0,1,0,123,6541],[3,1,0,1,1,17,882],[3,1,0,1,2,7,389],[3,1,0,1,3,2,104],[3,1,1,0,0,117,6253],[3,1,1,0,1,18,956],[3,1,1,0,2,6,340],[3,1,1,0,3,6,315],[3,1,1,0,4,2,103],[3,1,1,1,0,99,5198],[3,1,1,1,1,18,994],[3,1,1,1,2,3,160],[3,1,1,1,3,3,166],[3,1,1,1,4,1,52],[3,2,0,0,0,122,6437],[3,2,0,0,1,11,570],[3,2,0,0,2,2,96],[3,2,0,0,3,4,195],[3,2,0,0,4,3,155],[3,2,0,1,0,136,7189],[3,2,0,1,1,21,1145],[3,2,0,1,2,3,165],[3,2,0,1,3,7,365],[3,2,0,1,4,3,157],[3,2,1,0,0,104,5538],[3,2,1,0,1,10,561],[3,2,1,0,2,8,422],[3,2,1,0,3,4,199],[3,2,1,0,4,4,213],[3,2,1,1,0,128,6764],[3,2,1,1,1,13,705],[3,2,1,1,2,4,209],[3,2,1,1,3,3,160],[3,2,1,1,4,4,209],[3,3,0,0,0,101,5337],[3,3,0,0,1,13,703],[3,3,0,0,2,8,402],[3,3,0,0,3,5,283],[3,3,0,0,4,3,175],[3,3,0,1,0,131,6881],[3,3,0,1,1,13,684],[3,3,0,1,2,6,314],[3,3,0,1,3,4,218],[3,3,0,1,4,1,56],[3,3,1,0,0,134,7129],[3,3,1,0,1,15,814],[3,3,1,0,2,5,255],[3,3,1,0,3,5,260],[3,3,1,0,4,7,351],[3,3,1,1,0,134,7115],[3,3,1,1,1,18,981],[3,3,1,1,2,8,430],[3,3,1,1,3,4,217],[3,3,1,1,4,4,218],[3,4,0,0,0,108,5678],[3,4,0,0,1,13,706],[3,4,0,0,2,6,331],[3,4,0,0,3,6,298],[3,4,0,0,4,3,159],[3,4,0,1,0,100,5309],[3,4,0,1,1,20,1062],[3,4,0,1,2,4,207],[3,4,0,1,3,9,473],[3,4,0,1,4,3,175],[3,4,1,0,0,108,5645],[3,4,1,0,1,19,998],[3,4,1,0,2,6,330],[3,4,1,0,3,5,262],[3,4,1,0,4,4,219],[3,4,1,1,0,133,7063],[3,4,1,1,1,16,843],[3,4,1,1,2,8,432],[3,4,1,1,3,8,417],[3,4,1,1,4,3,162],[3,5,0,0,0,133,7036],[3,5,0,0,1,13,651],[3,5,0,0,2,6,339],[3,5,0,0,3,7,364],[3,5,0,0,4,2,112],[3,5,0,1,0,113,6053],[3,5,0,1,1,9,466],[3,5,0,1,2,8,424],[3,5,0,1,3,10,517],[3,5,0,1,4,2,111],[3,5,1,0,0,111,5930],[3,5,1,0,1,16,835],[3,5,1,0,2,5,261],[3,5,1,0,3,6,320],[3,5,1,0,4,3,158],[3,5,1,1,0,111,5906],[3,5,1,1,1,13,677],[3,5,1,1,2,10,566],[3,5,1,1,3,4,218],[3,5,1,1,4,3,162],[4,0,0,0,0,249,19163],[4,0,0,0,1,22,1711],[4,0,0,0,2,8,592],[4,0,0,0,3,16,1201],[4,0,0,0,4,4,304],[4,0,0,1,0,229,17433],[4,0,0,1,1,30,2158],[4,0,0,1,2,13,958],[4,0,0,1,3,7,508],[4,0,0,1,4,5,377],[4,0,1,0,0,232,17461],[4,0,1,0,1,33,2517],[4,0,1,0,2,10,755],[4,0,1,0,3,9,713],[4,0,1,0,4,6,432],[4,0,1,1,0,260,19874],[4,0,1,1,1,31,2404],[4,0,1,1,2,7,536],[4,0,1,1,3,7,526],[4,0,1,1,4,3,252],[4,1,0,0,0,227,16947],[4,1,0,0,1,25,1816],[4,1,0,0,2,12,873],[4,1,0,0,3,11,799],[4,1,0,0,4,6,463],[4,1,0,1,0,253,19254],[4,1,0,1,1,36,2695],[4,1,0,1,2,10,733],[4,1,0,1,3,12,955],[4,1,0,1,4,9,692],[4,1,1,0,0,222,16797],[4,1,1,0,1,31,2356],[4,1,1,0,2,15,1100],[4,1,1,0,3,15,1161],[4,1,1,0,4,9,656],[4,1,1,1,0,236,18014],[4,1,1,1,1,26,1986],[4,1,1,1,2,13,1001],[4,1,1,1,3,11,827],[4,1,1,1,4,5,412],[4,2,0,0,0,260,19640],[4,2,0,0,1,31,2303],[4,2,0,0,2,7,524],[4,2,0,0,3,9,672],[4,2,0,0,4,5,386],[4,2,0,1,0,265,19912],[4,2,0,1,1,29,2221],[4,2,0,1,2,23,1712],[4,2,0,1,3,18,1409],[4,2,0,1,4,6,449],[4,2,1,0,0,255,19385],[4,2,1,0,1,28,2079],[4,2,1,0,2,18,1385],[4,2,1,0,3,7,505],[4,2,1,0,4,8,595],[4,2,1,1,0,237,17704],[4,2,1,1,1,19,1439],[4,2,1,1,2,7,531],[4,2,1,1,3,12,885],[4,2,1,1,4,3,211],[4,3,0,0,0,223,16952],[4,3,0,0,1,34,2574],[4,3,0,0,2,9,660],[4,3,0,0,3,17,1279],[4,3,0,0,4,7,544],[4,3,0,1,0,260,19651],[4,3,0,1,1,43,3335],[4,3,0,1,2,12,923],[4,3,0,1,3,8,583],[4,3,0,1,4,5,399],[4,3,1,0,0,263,20125],[4,3,1,0,1,23,1748],[4,3,1,0,2,15,1179],[4,3,1,0,3,14,1059],[4,3,1,0,4,6,452],[4,3,1,1,0,211,15777],[4,3,1,1,1,23,1781],[4,3,1,1,2,9,687],[4,3,1,1,3,6,457],[4,3,1,1,4,5,377],[4,4,0,0,0,221,16669],[4,4,0,0,1,30,2330],[4,4,0,0,2,11,853],[4,4,0,0,3,12,904],[4,4,0,0,4,5,368],[4,4,0,1,0,251,18958],[4,4,0,1,1,30,2235],[4,4,0,1,2,13,987],[4,4,0,1,3,12,909],[4,4,0,1,4,4,273],[4,4,1,0,0,240,18174],[4,4,1,0,1,25,1907],[4,4,1,0,2,9,672],[4,4,1,0,3,15,1153],[4,4,1,0,4,3,228],[4,4,1,1,0,241,18222],[4,4,1,1,1,23,1705],[4,4,1,1,2,8,566],[4,4,1,1,3,14,1041],[4,4,1,1,4,5,365],[4,5,0,0,0,210,15708],[4,5,0,0,1,33,2535],[4,5,0,0,2,17,1251],[4,5,0,0,3,13,943],[4,5,0,0,4,4,300],[4,5,0,1,0,240,18363],[4,5,0,1,1,24,1832],[4,5,0,1,2,8,601],[4,5,0,1,3,13,938],[4,5,0,1,4,7,521],[4,5,1,0,0,256,19466],[4,5,1,0,1,26,1956],[4,5,1,0,2,11,832],[4,5,1,0,3,16,1202],[4,5,1,0,4,4,286],[4,5,1,1,0,234,17582],[4,5,1,1,1,40,3065],[4,5,1,1,2,8,567],[4,5,1,1,3,8,567],[4,5,1,1,4,3,238]];
+const AGE = ['<18','18-30','31-45','46-60','>60'];
+const TGT = ['No_Disease','Low_Risk','Moderate_Risk','High_Risk','Severe_Disease'];
+const C = {blue:'#1d6fb8',red:'#d64550',green:'#2e9e6b',slate:'#5d6b7a'};
+const TCOL = [C.green,'#d64550','#b8323d','#8f2530','#5f1a21'];
+const fmt = n => n.toLocaleString('id-ID');
+const pct = v => v==null ? '-' : v.toFixed(1).replace('.',',')+'%';
+
+function filtered(){
+  const a=document.getElementById('fAge').value, d=document.getElementById('fDia').value, h=document.getElementById('fHyp').value;
+  return DATA.filter(r => (a==='all'||r[0]==+a) && (d==='all'||r[2]==+d) && (h==='all'||r[3]==+h));
+}
+// hitung total dan PGK per kunci (idx kolom)
+function groupBy(rows, idx, size){
+  const o = Array.from({length:size},()=>({n:0,k:0}));
+  rows.forEach(r => { o[r[idx]].n += r[5]; if(r[4]>0) o[r[idx]].k += r[5]; });
+  return o;
+}
+const prevOf = g => g.n ? g.k/g.n*100 : null;
+
+// plugin: label nilai di atas batang/irisan + garis acuan
+const valueLabels = {
+  id:'valueLabels',
+  afterDatasetsDraw(chart, args, opt){
+    if(!opt || !opt.on) return;
+    const {ctx} = chart; const meta = chart.getDatasetMeta(0);
+    ctx.save(); ctx.font='600 12px Segoe UI, Arial'; ctx.textAlign='center';
+    meta.data.forEach((el,i)=>{
+      const v = chart.data.datasets[0].data[i]; if(v==null) return;
+      if(opt.doughnut){
+        if(v < 3) return;
+        const p = el.tooltipPosition(); ctx.fillStyle='#fff'; ctx.textBaseline='middle';
+        ctx.fillText(pct(v), p.x, p.y);
+      } else {
+        ctx.fillStyle='#1f2d3d'; ctx.textBaseline='bottom';
+        ctx.fillText(pct(v), el.x, el.y-4);
+      }
+    });
+    ctx.restore();
+  }
+};
+const refLine = {
+  id:'refLine',
+  afterDatasetsDraw(chart,args,opt){
+    if(!opt || opt.value==null) return;
+    const {ctx, chartArea:{left,right}, scales:{y}} = chart; const yy = y.getPixelForValue(opt.value);
+    ctx.save(); ctx.setLineDash([6,4]); ctx.strokeStyle=C.slate; ctx.lineWidth=1.2;
+    ctx.beginPath(); ctx.moveTo(left,yy); ctx.lineTo(right,yy); ctx.stroke(); ctx.restore();
+  }
+};
+Chart.register(valueLabels, refLine);
+Chart.defaults.font.family = 'Segoe UI, Roboto, Arial, sans-serif';
+
+const charts = {};
+function barChart(id, labels, groups, xTitle, color, ref){
+  const vals = groups.map(prevOf);
+  const any = groups.some(g=>g.n>0);
+  document.getElementById('e'+id.slice(1)).style.display = any ? 'none':'flex';
+  const cfg = {
+    type:'bar',
+    data:{labels, datasets:[{data:vals, backgroundColor:Array.isArray(color)?color:vals.map(()=>color), borderRadius:4, maxBarThickness:70}]},
+    options:{
+      responsive:true, maintainAspectRatio:false, layout:{padding:{top:20}},
+      scales:{
+        y:{beginAtZero:true, suggestedMax:30, title:{display:true,text:'Prevalensi PGK (%)'}, ticks:{callback:v=>v+'%'}, grid:{color:'#e6edf5'}},
+        x:{title:{display:true,text:xTitle}, grid:{display:false}}
+      },
+      plugins:{
+        legend:{display:false},
+        valueLabels:{on:true},
+        refLine:{value:ref},
+        tooltip:{callbacks:{label:c=>{const g=groups[c.dataIndex]; return g.n? ` ${pct(c.parsed.y)} (${fmt(g.k)} PGK dari ${fmt(g.n)} pasien)` : ' Tidak ada pasien';}}}
+      }
+    }
+  };
+  if(charts[id]){ charts[id].data = cfg.data; charts[id].options = cfg.options; charts[id].update(); }
+  else charts[id] = new Chart(document.getElementById(id), cfg);
+}
+function donut(rows){
+  const g = groupBy(rows,4,5); const total = g.reduce((s,x)=>s+x.n,0);
+  const vals = g.map(x=> total? x.n/total*100 : null);
+  document.getElementById('e1').style.display = total ? 'none':'flex';
+  const cfg = {
+    type:'doughnut',
+    data:{labels:TGT, datasets:[{data:vals, backgroundColor:TCOL, borderColor:'#fff', borderWidth:2}]},
+    options:{responsive:true, maintainAspectRatio:false, cutout:'48%',
+      plugins:{legend:{position:'bottom'}, valueLabels:{on:true,doughnut:true},
+        tooltip:{callbacks:{label:c=>` ${c.label}: ${pct(c.parsed)} (${fmt(g[c.dataIndex].n)} pasien)`}}}}
+  };
+  if(charts.c1){ charts.c1.data = cfg.data; charts.c1.options = cfg.options; charts.c1.update(); }
+  else charts.c1 = new Chart(document.getElementById('c1'), cfg);
+}
+
+function render(){
+  const rows = filtered();
+  const tg = groupBy(rows,4,5);
+  const total = tg.reduce((s,x)=>s+x.n,0);
+  const ckd = tg.slice(1).reduce((s,x)=>s+x.n,0);
+  const ageSum = rows.reduce((s,r)=>s+r[6],0);
+  const prev = total ? ckd/total*100 : null;
+
+  document.getElementById('kTotal').textContent = fmt(total);
+  document.getElementById('kTotalS').textContent = 'dari 20.538 pasien dalam dataset';
+  document.getElementById('kCkd').textContent = fmt(ckd);
+  document.getElementById('kPrev').textContent = pct(prev);
+  document.getElementById('kAge').textContent = total ? (ageSum/total).toFixed(1).replace('.',',') : '-';
+
+  const fa=document.getElementById('fAge'), fd=document.getElementById('fDia'), fh=document.getElementById('fHyp');
+  const act=[]; if(fa.value!=='all') act.push('Umur '+fa.options[fa.selectedIndex].text); if(fd.value!=='all') act.push(fd.options[fd.selectedIndex].text); if(fh.value!=='all') act.push(fh.options[fh.selectedIndex].text);
+  document.getElementById('filterInfo').textContent = act.length ? 'Filter aktif: '+act.join(' | ')+(total?'':' - tidak ada pasien yang cocok.') : 'Tidak ada filter aktif (menampilkan seluruh data).';
+
+  donut(rows);
+  barChart('c2', AGE, groupBy(rows,0,5), 'Kelompok umur (tahun)', C.blue, prev);
+  barChart('c3', ['0','1','2','3','4','5'], groupBy(rows,1,6), 'Level albumin urin', C.blue, prev);
+  barChart('c4', ['Non-diabetes','Diabetes'], groupBy(rows,2,2), 'Status diabetes', [C.green,C.red], prev);
+  barChart('c5', ['Non-hipertensi','Hipertensi'], groupBy(rows,3,2), 'Status hipertensi', [C.green,C.red], prev);
+
+  document.getElementById('tbody').innerHTML = TGT.map((t,i)=>
+    `<tr><td><span class="dot" style="background:${TCOL[i]}"></span>${t}</td><td>${fmt(tg[i].n)}</td><td>${pct(total? tg[i].n/total*100:null)}</td></tr>`).join('');
+  document.getElementById('tfoot').innerHTML =
+    `<tr><td>Total</td><td>${fmt(total)}</td><td>${total?'100,0%':'-'}</td></tr>
+     <tr><td><span class="dot" style="background:${C.red}"></span>Total PGK (selain No_Disease)</td><td>${fmt(ckd)}</td><td>${pct(prev)}</td></tr>`;
+}
+
+// Insight dihitung dari seluruh data (bukan dari filter)
+function insights(){
+  const all = DATA;
+  const tg = groupBy(all,4,5), total = tg.reduce((s,x)=>s+x.n,0), ckd = total - tg[0].n, prev = ckd/total*100;
+  const spread = arr => { const v=arr.map((g,i)=>({i,p:prevOf(g)})).filter(x=>x.p!=null); const hi=v.reduce((a,b)=>b.p>a.p?b:a), lo=v.reduce((a,b)=>b.p<a.p?b:a); return {hi,lo,d:hi.p-lo.p}; };
+  const ag = groupBy(all,0,5), al = groupBy(all,1,6), di = groupBy(all,2,2), hy = groupBy(all,3,2);
+  const sa = spread(ag), sl = spread(al);
+  const dd = prevOf(di[1])-prevOf(di[0]), hd = prevOf(hy[1])-prevOf(hy[0]);
+  const side = d => Math.abs(d)<1 ? 'selisihnya kurang dari 1 poin persentase' : 'selisih '+Math.abs(d).toFixed(1).replace('.',',')+' poin persentase';
+  const dir = d => d>0 ? 'sedikit lebih tinggi' : 'sedikit lebih rendah';
+  const L = [];
+  L.push(`<b>Gambaran umum.</b> Dari ${fmt(total)} pasien, ${fmt(ckd)} (${pct(prev)}) berstatus PGK menurut definisi tugas. Mayoritas (${pct(tg[0].n/total*100)}) berstatus No_Disease; kategori PGK terbesar adalah Low_Risk (${pct(tg[1].n/total*100)}), sedangkan Severe_Disease hanya ${pct(tg[4].n/total*100)}.`);
+  L.push(`<b>Umur.</b> Prevalensi PGK berkisar dari ${pct(sa.lo.p)} (kelompok ${AGE[sa.lo.i]}) sampai ${pct(sa.hi.p)} (kelompok ${AGE[sa.hi.i]}), selisih ${sa.d.toFixed(1).replace('.',',')} poin persentase. Tidak terlihat pola naik seiring bertambahnya umur; kelompok &gt;60 tahun (${pct(prevOf(ag[4]))}) justru tidak yang tertinggi. Perbedaannya terlalu kecil untuk dijadikan kesimpulan tentang pengaruh umur.`);
+  L.push(`<b>Albumin urin.</b> Prevalensi PGK antar level 0-5 berkisar ${pct(sl.lo.p)} (level ${sl.lo.i}) sampai ${pct(sl.hi.p)} (level ${sl.hi.i}), selisih ${sl.d.toFixed(1).replace('.',',')} poin persentase dan tidak naik secara konsisten per level. Dari data ini, albumin urin belum menunjukkan hubungan yang jelas dengan status PGK.`);
+  L.push(`<b>Diabetes dan hipertensi.</b> Prevalensi PGK pada pasien diabetes (${pct(prevOf(di[1]))}) ${dir(dd)} dibanding non-diabetes (${pct(prevOf(di[0]))}), ${side(dd)}. Pada hipertensi (${pct(prevOf(hy[1]))}) vs non-hipertensi (${pct(prevOf(hy[0]))}) ${side(hd)}. Arah selisihnya berlawanan dengan yang diharapkan secara klinis, namun karena sangat kecil ini sebaiknya dibaca sebagai <i>tidak ada perbedaan bermakna</i>, bukan bahwa diabetes atau hipertensi melindungi dari PGK.`);
+  L.push(`<b>Makna bagi pengelolaan informasi kesehatan.</b> Prevalensi yang hampir sama di semua kelompok menunjukkan faktor-faktor ini tidak membedakan risiko pada dataset ini. Hal tersebut perlu diverifikasi sebelum dipakai: periksa asal dan proses pengumpulan data, definisi variabel, dan kualitas pencatatan. Dashboard seperti ini berguna untuk memantau proporsi per kelompok dan memeriksa konsistensi data, tetapi tidak layak dipakai sebagai dasar keputusan klinis atau kebijakan.`);
+  L.push(`<b>Catatan pemakaian.</b> Distribusi yang sangat merata antar kelompok (mis. jumlah pasien per level albumin dan proporsi diabetes/hipertensi yang hampir 50:50) tidak lazim pada data klinis nyata, sehingga dataset ini lebih tepat diperlakukan sebagai data latihan analisis. Hasilnya tidak boleh digeneralisasi ke populasi nyata.`);
+  document.getElementById('insightList').innerHTML = L.map(x=>`<li>${x}</li>`).join('');
+}
+
+['fAge','fDia','fHyp'].forEach(id=>document.getElementById(id).addEventListener('change',render));
+document.getElementById('reset').addEventListener('click',()=>{['fAge','fDia','fHyp'].forEach(id=>document.getElementById(id).value='all');render();});
+render(); insights();
+</script>
+</body>
+</html>
